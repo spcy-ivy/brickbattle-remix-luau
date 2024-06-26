@@ -1,0 +1,17 @@
+ienvironments:
+        - name: dev
+          targetNamePrefix: environmentName
+        - name: prod
+          targetAccess: public
+ 
+target:
+	experience:
+		configuration:
+			genre: building
+		places:
+			start:
+				file: FFA/place.rbxlx
+				configuration:
+					name: brickbattle remix
+					description: |-
+						idk a fighting game or something

@@ -1,0 +1,29 @@
+{
+        "name": "brickbattle-remix-training",
+        "emitLegacyScripts": false,
+        "tree": {
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+                        "Client": {
+        			"$path": "client"
+                        },
+                        "Shared": {
+        			"$path": "shared"
+                        },
+                        "GlobalClient": {
+				"$path": "../../global/client/"
+                        },
+                        "GlobalShared": {
+				"$path": "../../global/shared/"
+                        }
+        	},
+        	"ServerScriptService": {
+                	"Server": {
+				"$path": "server"
+                	},
+                        "GlobalServer": {
+				"$path": "../../global/server/"
+                        }
+        	}
+        }
+}
