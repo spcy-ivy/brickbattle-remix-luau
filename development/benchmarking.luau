@@ -1,9 +1,12 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --[[
 	benchmarking.luau
 
 	because i need speed
 ]]
 -- TODO: add a parameter generator thingy like the boatbomber plugin :)
+
+local type_guard = require(ReplicatedStorage.global_shared.library.type_guard)
 
 export type BenchmarkingResults = {
 	tenth_percentile: number,
@@ -15,7 +18,11 @@ export type BenchmarkingResults = {
 	total: number,
 }
 
+export type BenchmarkingScript = () -> { [string]: BenchmarkingResults }
+
 type BenchmarkingLibrary = {
+	benchmarking_results_guard: type_guard.Check,
+	benchmarking_script_guard: type_guard.Check,
 	run: (callback: () -> (), repetitions: number?) -> BenchmarkingResults,
 	pretty_print: (results: BenchmarkingResults) -> (),
 	subtract: (
@@ -25,6 +32,19 @@ type BenchmarkingLibrary = {
 }
 
 local k_default_repetitions = 500
+
+local benchmarking_results_guard = type_guard.interface({
+	tenth_percentile = type_guard.number,
+	fiftieth_percentile = type_guard.number,
+	ninetieth_percentile = type_guard.number,
+	minimum = type_guard.number,
+	maximum = type_guard.number,
+	average = type_guard.number,
+	total = type_guard.number,
+})
+
+local benchmarking_script_guard =
+	type_guard.map(type_guard.string, benchmarking_results_guard)
 
 local function run(
 	callback: () -> (),
@@ -111,6 +131,8 @@ local function subtract(
 end
 
 local benchmarking_library: BenchmarkingLibrary = {
+	benchmarking_results_guard = benchmarking_results_guard,
+	benchmarking_script_guard = benchmarking_script_guard,
 	run = run,
 	pretty_print = pretty_print,
 	subtract = subtract,

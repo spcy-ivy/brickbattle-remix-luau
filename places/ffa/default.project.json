@@ -4,24 +4,24 @@
         "tree": {
 		"$className": "DataModel",
 		"ReplicatedStorage": {
-                        "Client": {
+                        "client": {
         			"$path": "client"
                         },
-                        "Shared": {
+                        "shared": {
         			"$path": "shared"
                         },
-                        "GlobalClient": {
+                        "global_client": {
 				"$path": "../../global/client/"
                         },
-                        "GlobalShared": {
+                        "global_shared": {
 				"$path": "../../global/shared/"
                         }
         	},
         	"ServerScriptService": {
-                	"Server": {
+                	"server": {
 				"$path": "server"
                 	},
-                        "GlobalServer": {
+                        "global_server": {
 				"$path": "../../global/server/"
                         }
         	}

@@ -1,4 +1,7 @@
-return function(benchmarking)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local benchmarking = require(ReplicatedStorage.development.benchmarking)
+
+return function()
 	local create_results = benchmarking.run(function()
 		table.create(5000, 1)
 	end)
