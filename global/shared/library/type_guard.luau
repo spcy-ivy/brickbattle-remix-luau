@@ -19,6 +19,7 @@ type TypeGuardModule = {
 	undefined: Check,
 	number: Check,
 	string: Check,
+	lambda: Check,
 	intersection: (first: Check, second: Check) -> Check,
 	union: (first: Check, second: Check) -> Check,
 	nullable: (check: Check) -> Check,
@@ -49,6 +50,10 @@ end
 
 local string: Check = function(value: unknown)
 	return type(value) == "string"
+end
+
+local lambda: Check = function(value: unknown)
+	return type(value) == "function"
 end
 
 local function intersection(first: Check, second: Check): Check
@@ -139,6 +144,7 @@ local type_guard_module: TypeGuardModule = {
 	undefined = undefined,
 	number = number,
 	string = string,
+	lambda = lambda,
 	intersection = intersection,
 	union = union,
 	nullable = nullable,

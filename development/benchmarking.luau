@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 	because i need speed
 ]]
+-- TODO: ok.. so the first benchmark run is always the slowest... might be cache and shit... so fix that... please
 -- TODO: add a parameter generator thingy like the boatbomber plugin :)
 
 local type_guard = require(ReplicatedStorage.global_shared.library.type_guard)
@@ -24,7 +25,6 @@ type BenchmarkingLibrary = {
 	benchmarking_results_guard: type_guard.Check,
 	benchmarking_script_guard: type_guard.Check,
 	run: (callback: () -> (), repetitions: number?) -> BenchmarkingResults,
-	pretty_print: (results: BenchmarkingResults) -> (),
 	subtract: (
 		first: BenchmarkingResults,
 		second: BenchmarkingResults
@@ -83,7 +83,7 @@ local function run(
 	results.fiftieth_percentile = times[math.round(#times / 2)]
 	results.ninetieth_percentile = times[math.round(#times * (9 / 10))]
 
-	for _, length in ipairs(times) do
+	for _, length in times do
 		results.total += length
 	end
 
@@ -92,37 +92,13 @@ local function run(
 	return results
 end
 
-local function pretty_print(results: BenchmarkingResults)
-	local function process_string(length: number): string
-		local microseconds = math.ceil((length :: number) * 1000000)
-
-		if math.abs(microseconds) > 1000 then
-			local milliseconds =
-				math.ceil((length :: number) * 1000)
-			return `~{milliseconds} **milliseconds**`
-		end
-
-		return `~{microseconds} microseconds`
-	end
-
-	print("| category | time |")
-	print("|----------|------|=>")
-	print(`| 10th %   | {process_string(results.tenth_percentile)}`)
-	print(`| 50th %   | {process_string(results.fiftieth_percentile)}`)
-	print(`| 90th %   | {process_string(results.ninetieth_percentile)}`)
-	print(`| min      | {process_string(results.minimum)}`)
-	print(`| max      | {process_string(results.maximum)}`)
-	print(`| avg      | {process_string(results.average)}`)
-	print(`| total    | {process_string(results.total)}`)
-end
-
 local function subtract(
 	first: BenchmarkingResults,
 	second: BenchmarkingResults
 ): BenchmarkingResults
 	local result = {} :: BenchmarkingResults
 
-	for index, _ in pairs(first) do
+	for index, _ in first do
 		-- the fact that this entire thing doesnt piss off the type system is just fucking hilarious to me
 		result[index] = first[index] - second[index]
 	end
@@ -134,7 +110,6 @@ local benchmarking_library: BenchmarkingLibrary = {
 	benchmarking_results_guard = benchmarking_results_guard,
 	benchmarking_script_guard = benchmarking_script_guard,
 	run = run,
-	pretty_print = pretty_print,
 	subtract = subtract,
 }
 

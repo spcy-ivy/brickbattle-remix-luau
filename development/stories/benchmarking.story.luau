@@ -27,10 +27,10 @@ local function result_row(name: string, data: number)
 	local data_label = result_label()
 	data_label.Position = UDim2.fromScale(0.5, 0)
 
-	local microseconds = math.ceil(data * 1000000)
+	local microseconds = data * 1000000
 
 	if math.abs(microseconds) > 1000 then
-		local milliseconds = math.ceil(data * 1000)
+		local milliseconds = data * 1000
 		data_label.Text = `{milliseconds} ms`
 	else
 		data_label.Text = `{microseconds} μs`
@@ -47,10 +47,6 @@ local function result_tile(
 )
 	local tile = Instance.new("Frame")
 	tile.BackgroundColor3 = colorscheme.scheme.background
-
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = colorscheme.scheme.selection_background
-	stroke.Parent = tile
 
 	local tile_list_layout = Instance.new("UIListLayout")
 	tile_list_layout.Parent = tile
@@ -107,16 +103,18 @@ return function(parent: Instance)
 	root.Size = UDim2.fromScale(1, 1)
 	root.BackgroundTransparency = 1
 
-	local test_selector = Instance.new("ScrollingFrame")
-	test_selector.Size = UDim2.fromScale(0.2, 1)
-	test_selector.BackgroundColor3 = colorscheme.scheme.lighter_background
-	test_selector.ScrollBarThickness = 0
-	test_selector.Parent = root
+	local benchmark_selector = Instance.new("ScrollingFrame")
+	benchmark_selector.Size = UDim2.fromScale(0.2, 1)
+	benchmark_selector.BackgroundColor3 =
+		colorscheme.scheme.lighter_background
+	benchmark_selector.ScrollBarThickness = 0
+	benchmark_selector.Parent = root
 
 	local selector_list_layout = Instance.new("UIListLayout")
-	selector_list_layout.Parent = test_selector
+	selector_list_layout.Parent = benchmark_selector
 
-	local benchmark_picked = signal.new()
+	local benchmark_picked: signal.Signal<{ [string]: benchmarking.BenchmarkingResults }> =
+		{}
 	local currently_activated = 1
 	local script_buttons: { [number]: { button: TextButton, benchmarking_script: ModuleScript } } =
 		{}
@@ -139,7 +137,7 @@ return function(parent: Instance)
 		script_button.BackgroundColor3 =
 			colorscheme.scheme.selection_background
 		script_button.Text = benchmarking_script.Name
-		script_button.Parent = test_selector
+		script_button.Parent = benchmark_selector
 
 		local index = #script_buttons + 1
 
@@ -174,12 +172,13 @@ return function(parent: Instance)
 		end)
 	end
 
-	test_selector.CanvasSize = UDim2.fromOffset(
+	benchmark_selector.CanvasSize = UDim2.fromOffset(
 		selector_list_layout.AbsoluteContentSize.X,
 		selector_list_layout.AbsoluteContentSize.Y + 20
 	)
 
 	local result_display = Instance.new("ScrollingFrame")
+	result_display.ScrollBarThickness = 0
 	result_display.Position = UDim2.fromScale(0.2, 0)
 	result_display.Size = UDim2.fromScale(0.8, 1)
 	result_display.BackgroundColor3 = colorscheme.scheme.background
