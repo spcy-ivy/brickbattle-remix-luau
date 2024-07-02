@@ -15,7 +15,13 @@
                         },
                         "global_shared": {
 				"$path": "../../global/shared/"
-                        }
+                        },
+			"global_client_assets": {
+				"$path": "../../global_assets/client/"
+			},
+			"global_shared_assets": {
+				"$path": "../../global_assets/shared/"
+			}
         	},
         	"ServerScriptService": {
                 	"server": {
@@ -23,7 +29,10 @@
                 	},
                         "global_server": {
 				"$path": "../../global/server/"
-                        }
+                        },
+			"global_assets": {
+				"$path": "../../global_assets/server/"
+			}
         	}
         }
 }

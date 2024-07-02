@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local benchmarking = require(ReplicatedStorage.development.benchmarking)
-local lemonsignal = require(ReplicatedStorage.global_shared.library.lemonsignal)
+local lemonsignal = require(script.lemonsignal)
 local signal = require(ReplicatedStorage.global_shared.library.signal)
 
 local signal_comparison: benchmarking.BenchmarkingScript = function()
