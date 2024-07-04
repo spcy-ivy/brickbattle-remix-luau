@@ -1,28 +1,10 @@
 --[[
 	errors.luau
 
-	i like zig's error handling better than `pcall`
-
-	why not	`pcall`?
-	1. theres no indicator that something can error
-	2. thats like my only problem with it lmao
-
-	why not rust's `result`?
-	1. thats cool too :^), my unconscious likes zig's error handling better tho
-	2. thats it i really like results too
-
-	why zig's error handling?
-	1. you know IF theres an error
-	2. types make it explicit HOW the program can error
-	3. heheheheh cool error convenience functions
-
-	largely going to be inspied by this:
-	https://www.aolium.com/karlseguin/4013ac14-2457-479b-e59b-e603c04673c8
-	
-	thank you blog :)
-
-	- we wont add try, because... you can just do `if Error.type`
-	- we dont add catch.. for the same reason
+	why have this type and wrapper for it in the first place?
+	1. i dont like runtime errors :(
+	2. i like when a type tells me something will error
+	3. i like when the LSP whines at me like a little baby when i dont handle an error (annoying fucking LSP... shut the fuck up)
 ]]
 
 export type Error<T> = { type: "ok", value: T } | { type: "error", value: string }
