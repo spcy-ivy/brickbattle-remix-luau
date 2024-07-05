@@ -26,6 +26,7 @@ local ServerMods = require(script.Parent.ServerMods)
 local WeaponsModule = require(script.Parent.WeaponsServer)
 
 local Profiler = require(shared_path.Vendor.Profiler)
+local Types = require(shared_path.Types)
 
 local RemoteEvent = Instance.new("RemoteEvent")
 RemoteEvent.Name = "ChickynoidReplication"
@@ -313,7 +314,7 @@ function ServerModule:AddConnection(userId, player)
 		end
 	end
 
-	function playerRecord:SetCharacterMod(characterModName)
+	function playerRecord:SetCharacterMod(characterModName: string)
 		self.characterMod = characterModName
 		ServerModule:SetWorldStateDirty()
 	end

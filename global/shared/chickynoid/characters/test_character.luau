@@ -1,34 +1,27 @@
-local module = {}
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Types = require(ReplicatedStorage.global_shared.chickynoid.Types)
 
-function module:Setup(simulation)
-	-- simulation.constants.maxSpeed = 16 --Units per second
-	-- simulation.constants.airSpeed = 16 --Units per second
-	-- simulation.constants.accel = 10 --Units per second per second
-	-- simulation.constants.airAccel = 10 --Uses a different function than ground accel!
-	-- simulation.constants.jumpPunch = 35 --Raw velocity, just barely enough to climb on a 7 unit tall block
-	-- simulation.constants.turnSpeedFrac = 10 --seems about right? Very fast.
-	-- simulation.constants.runFriction = 0.01 --friction applied after max speed
-	-- simulation.constants.brakeFriction = 0.03 --Lower is brake harder, dont use 0
-	-- simulation.constants.maxGroundSlope = 0.55 --about 45o
-	-- simulation.constants.jumpThrustPower = 300 --If you keep holding jump, how much extra vel per second is there?  (turn this off for no variable height jumps)
-	-- simulation.constants.jumpThrustDecay = 0.25 --Smaller is faster
-
-	simulation.constants.maxSpeed = 48 --Units per second
-	simulation.constants.airSpeed = 48 --Units per second
-	simulation.constants.accel = 100 --Units per second per second
-	simulation.constants.airAccel = 5 --Uses a different function than ground accel!
-	simulation.constants.jumpPunch = 35 --Raw velocity, just barely enough to climb on a 7 unit tall block
-	simulation.constants.turnSpeedFrac = 10 --seems about right? Very fast.
-	simulation.constants.runFriction = 0.01 --friction applied after max speed
-	simulation.constants.brakeFriction = 0.01 --Lower is brake harder, dont use 0
-	simulation.constants.maxGroundSlope = 0.55 --about 45o
-	simulation.constants.jumpThrustPower = 400 --If you keep holding jump, how much extra vel per second is there?  (turn this off for no variable height jumps)
-	simulation.constants.jumpThrustDecay = 0.1 --Smaller is faster
+local function setup(_self: Types.CharacterMod, simulation: Types.Simulation)
+	simulation.constants.maxSpeed = 48
+	simulation.constants.airSpeed = 48
+	simulation.constants.accel = 100
+	simulation.constants.airAccel = 5
+	simulation.constants.jumpPunch = 35
+	simulation.constants.turnSpeedFrac = 10
+	simulation.constants.runFriction = 0.01
+	simulation.constants.brakeFriction = 0.01
+	simulation.constants.maxGroundSlope = 0.55
+	simulation.constants.jumpThrustPower = 400
+	simulation.constants.jumpThrustDecay = 0.1
 end
 
-function module:GetCharacterModel(userId)
-	--return game.ReplicatedFirst.Packages.Chickynoid.Assets.BigHeadRig
+local function get_character_model(_self: Types.CharacterMod, _user_id: number)
 	return nil
 end
 
-return module
+local test_character: Types.CharacterMod = {
+	Setup = setup,
+	GetCharacterModel = get_character_model,
+}
+
+return test_character
