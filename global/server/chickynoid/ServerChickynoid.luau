@@ -11,8 +11,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local shared_path = ReplicatedStorage.global_shared.chickynoid
 
 local Enums = require(shared_path.Enums)
+local signal = require(ReplicatedStorage.global_shared.library.signal)
 local EventType = Enums.EventType
-local FastSignal = require(shared_path.Vendor.FastSignal)
 
 local CommandLayout = require(shared_path.Simulation.CommandLayout)
 local DeltaTable = require(shared_path.Vendor.DeltaTable)
@@ -52,7 +52,7 @@ function ServerChickynoid.new(playerRecord)
 
 		serverFrames = 0,
 
-		hitBoxCreated = FastSignal.new(),
+		hitBoxCreated = {} :: signal.Signal<Part>,
 		storedStates = {}, --table of the last few states we've send the client, because we use unreliables, we need to switch to ome of these to delta comrpess against once its confirmed
 
 		unreliableCommandSerials = 0, --This number only ever goes up, and discards anything out of order
@@ -529,7 +529,7 @@ function ServerChickynoid:UpdateServerCollisionBox(server)
 		box.CanQuery = true
 		box:SetAttribute("player", self.playerRecord.userId)
 		self.hitBox = box
-		self.hitBoxCreated:Fire(self.hitBox)
+		signal.fire(self.hitBoxCreated, self.hitBox)
 
 		--for streaming enabled games...
 		if self.playerRecord.player then

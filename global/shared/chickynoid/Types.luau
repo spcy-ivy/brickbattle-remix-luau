@@ -3,6 +3,11 @@
     All types used by Chickynoid.
 ]=]
 
+-- TODO: might need to partition these types into their individual modules later :)
+
+-- NOTE: the casing here will be inconsistent with the rest of our codebase's standards (most apparent is the deviation from snake_case), so just watch out for that pleaz
+-- These types will mostly be based off of the typescript types in the original chickynoid codebase
+
 --[=[
     @interface ISimulationConfig
     @within Types
@@ -37,22 +42,51 @@ export type IClientConfig = {
 }
 
 --[=[
+	@interface State
+	@within Types
+	.pos Vector3 -- The position of the character
+	.vel Vector3 -- The velocity of the character
+	.pushDir Vector2 -- Two axis direction where the player is being pushed
+	.jump number -- Whether the character is jumping
+	.angle number -- The rotation of the player
+	.targetAngle number -- idfk lol
+	.stepUp number -- idfk lol
+	.inAir number -- Whether the character is airborne
+	.jumpThrust number -- idfk lol
+	.pushing number -- idfk lol
+	.characterData unknown -- idfk lol
+]=]
+export type State = {
+	pos: Vector3,
+	vel: Vector3,
+	pushDir: Vector2,
+	jump: number,
+	angle: number,
+	targetAngle: number,
+	stepUp: number,
+	inAir: number,
+	jumpThrust: number,
+	pushing: number,
+	characterData: unknown, -- WIP
+}
+
+--[=[
 	@interface Constants
 	@within Types
-	.maxSpeed -- Units per second
-	.airSpeed -- Units per second
-	.accel -- Units per second 
-	.airAccel -- Uses a different function than ground accel!
-	.jumpPunch -- Raw velocity, just barely enough to climb on a 7 unit tall block
-	.turnSpeedFrac -- Seems about right? Very fast.
-	.runFriction -- Friction applied after max speed
-	.brakeFriction -- Lower is brake harder, dont use 0
-	.maxGroundSlope -- About 45 degrees
-	.jumpThrustPower --  If you keep holding jump, how much extra vel per second is there?  (turn this off for no variable height jumps)
-	.jumpThrustDecay -- Smaller is faster
-	.crashLandBehavior -- Documentation WIP
-	.stepSize -- Documentation WIP
-	.gravity -- Documentation WIP
+	.maxSpeed number -- Units per second
+	.airSpeed number -- Units per second
+	.accel number -- Units per second 
+	.airAccel number -- Uses a different function than ground accel!
+	.jumpPunch number -- Raw velocity, just barely enough to climb on a 7 unit tall block
+	.turnSpeedFrac number -- Seems about right? Very fast.
+	.runFriction number -- Friction applied after max speed
+	.brakeFriction number -- Lower is brake harder, dont use 0
+	.maxGroundSlope number -- About 45 degrees
+	.jumpThrustPower number --  If you keep holding jump, how much extra vel per second is there?  (turn this off for no variable height jumps)
+	.jumpThrustDecay number -- Smaller is faster
+	.crashLandBehavior number -- Documentation WIP
+	.stepSize number -- Documentation WIP
+	.gravity number -- Documentation WIP
 ]=]
 export type Constants = {
 	maxSpeed: number,
@@ -71,20 +105,137 @@ export type Constants = {
 	gravity: number,
 }
 
+--[=[
+	@interface Constants
+	@within Types
+]=]
+export type CollisionData = {
+	startPos: Vector3,
+	endPos: Vector3,
+	fraction: number,
+	startSolid: boolean,
+	allSolid: boolean,
+	planeNum: number,
+	planeD: number,
+	normal: Vector3,
+	checks: number,
+	hullRecord: nil,
+}
+
 --- MASSIVE WIP
 export type Simulation = {
+	state: State,
 	constants: Constants,
+	userId: number,
+	lastGround: unknown, -- WIP
+	characterData: unknown, -- WIP
+
+	RegisterMoveState: (
+		self: Simulation,
+		name: string,
+		updateState: ((simulation: Simulation, command: Command) -> ())?,
+		alwaysThink: ((simulation: Simulation, command: Command) -> ())?,
+		startState: ((simulation: Simulation, command: Command) -> ())?,
+		endState: ((simulation: Simulation, command: Command) -> ())?,
+		alwaysThinkLate: ((
+			simulation: Simulation,
+			command: Command
+		) -> ())?,
+		executionOrder: number?
+	) -> (),
+
+	GetMoveState: () -> unknown, -- WIP
+	SetMoveState: (moveState: string) -> (),
+
+	SetPosition: (position: Vector3, teleport: boolean) -> (),
+	SetAngle: (angle: number, teleport: boolean) -> (),
+
+	ProjectVelocity: (
+		startPos: Vector3,
+		startVel: Vector3,
+		deltaTime: number
+	) -> (Vector3, Vector3, boolean),
+
+	DoGroundCheck: (position: Vector3) -> unknown, -- WIP
 }
 
 --[=[
 	@interface CharacterMod
 	@within Types
-	.Setup -- Mostly for setting simulation constants and state alongside setting up some move types
-	.GetCharacterModel -- Return a model to set a custom rig for a specific character!
+	.Setup (self: CharacterMod, simulation: Simulation) -> () -- Mostly for setting simulation constants and state alongside setting up some move types
+	.GetCharacterModel (self: CharacterMod, user_id: number) -> Model? -- Return a model to set a custom rig for a specific character!
 ]=]
 export type CharacterMod = {
 	Setup: (self: CharacterMod, simulation: Simulation) -> (),
 	GetCharacterModel: (self: CharacterMod, user_id: number) -> Model?,
+}
+
+--[=[
+	@interface Command
+	@within Types
+	.serverTime number -- dunno this lol
+	.deltaTime number -- dunno what this is either
+	.snapshotServerFrame number -- still dunno
+	.playerStateFrame number -- uhhhhhhhh
+	.x number -- X directional run input
+	.y number -- Y directional run input
+	.z number -- Z directional run input
+]=]
+export type Command = {
+	serverTime: number,
+	deltaTime: number,
+	snapshotServerFrame: number,
+	playerStateFrame: number,
+
+	x: number,
+	y: number,
+	z: number,
+}
+
+--- EXTREME WIP
+export type ClientModule = {}
+
+--[=[
+	@interface ClientMod
+	@within Types
+
+	.GetPriority (() -> number)? -- Decides which function goes first
+	.Step (self: ClientMod, deltaTime: number) -> () -- Runs every frame i think
+	.Setup (self: ClientMod) -> () -- Initial setup i think
+	.GenerateCommand (self ClientMod, command Command, serverTime number, deltaTime number) -> unknown)? -- no idea what this does LMAOOO
+]=]
+export type ClientMod = {
+	Setup: (self: ClientMod, client: ClientModule) -> (),
+	GetPriority: (() -> number)?,
+	Step: (self: ClientMod, deltaTime: number) -> (),
+	GenerateCommand: ((
+		self: ClientMod,
+		command: Command,
+		serverTime: number,
+		deltaTime: number
+	) -> unknown)?,
+}
+
+--[=[
+	@interface SimulationModifier
+	@within Types
+	.ModifySimulation (self: SimulationModifier, simulation: Simulation) -> () -- The main function to call `Simulation:RegisterMoveState`in
+	.ActiveThink ((simulation: Simulation, command: Command) -> ())? -- Runs while the state is activated
+	.AlwaysThink ((simulation: Simulation, command: Command) -> ())? -- Always runs regardless of activation
+	.StartState ((simulation: Simulation, command: Command) -> ())? -- Runs when the state is activated
+	.EndState ((simulation: Simulation, command: Command) -> ())? -- Runs when state is deactivated
+	.AlwaysThinkLate ((simulation: Simulation, command: Command) -> ())? -- idk but i think it *always* runs last
+]=]
+export type SimulationModifier = {
+	ModifySimulation: (
+		self: SimulationModifier,
+		simulation: Simulation
+	) -> (),
+	ActiveThink: ((simulation: Simulation, command: Command) -> ())?,
+	AlwaysThink: ((simulation: Simulation, command: Command) -> ())?,
+	StartState: ((simulation: Simulation, command: Command) -> ())?,
+	EndState: ((simulation: Simulation, command: Command) -> ())?,
+	AlwaysThinkLate: ((simulation: Simulation, command: Command) -> ())?,
 }
 
 return nil

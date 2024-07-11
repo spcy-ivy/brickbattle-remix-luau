@@ -26,6 +26,7 @@ local ClientMods = require(client_path.ClientMods)
 local ClientWeaponModule = require(client_path.WeaponsClient)
 local CollisionModule = require(shared_path.Simulation.CollisionModule)
 local FastSignal = require(shared_path.Vendor.FastSignal)
+local Types = require(ReplicatedStorage.global_shared.chickynoid.Types)
 
 local CrunchTable = require(shared_path.Vendor.CrunchTable)
 local Enums = require(shared_path.Enums)
@@ -1168,15 +1169,16 @@ function ClientModule:IsConnectionBad()
 end
 
 function ClientModule:GenerateCommandBase(serverTime, deltaTime)
-	local command = {}
-	command.serverTime = serverTime --For rollback - a locally interpolated value
-	command.deltaTime = deltaTime --How much time this command simulated
-	command.snapshotServerFrame = self.snapshotServerFrame --Confirm to the server the last snapshot we saw
-	command.playerStateFrame = self.localChickynoid.lastSeenPlayerStateFrame --Confirm to server the last playerState we saw
+	local command: Types.Command = {
+		serverTime = serverTime, --For rollback - a locally interpolated value
+		deltaTime = deltaTime, --How much time this command simulated
+		snapshotServerFrame = self.snapshotServerFrame, --Confirm to the server the last snapshot we saw
+		playerStateFrame = self.localChickynoid.lastSeenPlayerStateFrame, --Confirm to server the last playerState we saw
 
-	command.x = 0
-	command.y = 0
-	command.z = 0
+		x = 0,
+		y = 0,
+		z = 0,
+	}
 
 	local modules = ClientMods:GetMods("clientmods")
 
@@ -1194,4 +1196,3 @@ function ClientModule:GenerateCommandBase(serverTime, deltaTime)
 end
 
 return ClientModule
-

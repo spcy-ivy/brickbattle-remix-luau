@@ -27,7 +27,8 @@ CharacterModel.template = nil
 CharacterModel.characterModelCallbacks = {}
 
 function CharacterModel:ModuleSetup()
-	self.template = ReplicatedStorage.global_shared_assets.chickynoid.R15Rig
+	-- self.template = ReplicatedStorage.global_shared_assets.chickynoid.R15Rig
+	self.template = ReplicatedStorage.global_shared_assets.characters.dummy
 	self.modelPool = {}
 end
 

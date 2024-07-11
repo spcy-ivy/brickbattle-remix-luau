@@ -14,7 +14,23 @@
 	wheres my `new` and `disconnect_all`?
 	1. since signals are just tables, you can create a signal just by creating an empty table! make sure to explicitly type it to `Signal` so that you know its a signal
 	2. since signals are just tables, all you need to do to clear the table to disconnect everything!
+
+	usage:
+	```luau
+	local signal = require([signal])
+
+	local test: signal.Signal<number> = {}
+
+	signal.connect(test, function(value: number)
+		print(value + 1)
+	end)
+
+	signal.fire(test, 2)
+	```
 ]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local fast_spawn = require(ReplicatedStorage.global_shared.library.fast_spawn)
 
 export type Signal<T...> = { Connection<T...> }
 
@@ -41,21 +57,6 @@ type SignalModule<T...> = {
 	wait: <T...>(signal: Signal<T...>) -> (),
 	fire: <T...>(signal: Signal<T...>, T...) -> (),
 }
-
-local free_threads: { thread } = {}
-
-local function run_callback(callback: () -> (), thread: thread, ...)
-	callback(...)
-
-	-- manual insertion is EVER SO SLIGHTLY faster than table.insert
-	free_threads[#free_threads + 1] = thread
-end
-
-local function yielder()
-	while true do
-		run_callback(coroutine.yield())
-	end
-end
 
 local function disconnect<T...>(connection: Connection<T...>)
 	if not connection.connected then
@@ -114,17 +115,7 @@ end
 
 local function fire<T...>(signal: Signal<T...>, ...: T...)
 	for _, connection in signal do
-		local thread: thread
-
-		if #free_threads > 0 then
-			thread, free_threads[#free_threads] =
-				free_threads[#free_threads], nil
-		else
-			thread = coroutine.create(yielder)
-			coroutine.resume(thread)
-		end
-
-		task.spawn(thread, connection._callback, thread, ...)
+		fast_spawn(connection._callback, ...)
 	end
 end
 

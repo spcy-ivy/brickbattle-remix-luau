@@ -1,146 +1,86 @@
-local module = {}
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
+local Types = require(ReplicatedStorage.global_shared.chickynoid.Types)
+
+-- just so that i dont have to cast to any :(
+type TouchJumpController = {
+	GetIsJumping: (self: TouchJumpController) -> boolean,
+}
+
+type ActiveController = {
+	GetIsJumping: (self: ActiveController) -> boolean,
+}
+
+type ControlModuleOverride = {
+	GetMoveVector: (self: ControlModuleOverride) -> Vector3,
+	activeController: ActiveController,
+	touchJumpController: TouchJumpController,
+}
+
 --Module for how to pass user input to the chickynoid system
 --It's not really an example (you need a version of this to play!) But you'll need to clone/remove/edit this to do your own input functionality
 
-module.client = nil
-module.useInbuiltDebugCheats = false
-module.shiftLock = 0
-local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local shift_lock = 0
+local reset_requested = false
 
---For access to control vectors
-local ControlModule = nil --require(PlayerModule:WaitForChild("ControlModule"))
+local control_module = require(
+	player:WaitForChild("PlayerScripts")
+		:WaitForChild("PlayerModule")
+		:WaitForChild("ControlModule")
+) :: ControlModuleOverride
 
-local function GetControlModule()
-	if ControlModule == nil then
-		local LocalPlayer = game.Players.LocalPlayer
-		local scripts = LocalPlayer:FindFirstChild("PlayerScripts")
-		if scripts == nil then
-			return nil
-		end
-
-		local playerModule = scripts:FindFirstChild("PlayerModule")
-		if playerModule == nil then
-			return nil
-		end
-
-		local controlModule =
-			playerModule:FindFirstChild("ControlModule")
-		if controlModule == nil then
-			return nil
-		end
-
-		ControlModule = require(
-			LocalPlayer:WaitForChild("PlayerScripts")
-				:WaitForChild("PlayerModule")
-				:WaitForChild("ControlModule")
-		)
-	end
-
-	return ControlModule
-end
-
-local coreCall
-do
-	local MAX_RETRIES = 8
-
-	local StarterGui = game:GetService("StarterGui")
-	local RunService = game:GetService("RunService")
-
-	function coreCall(method, ...)
-		local result = {}
-		for retries = 1, MAX_RETRIES do
-			result = { pcall(StarterGui[method], StarterGui, ...) }
-			if result[1] then
-				break
-			end
-			RunService.Stepped:Wait()
-		end
-		return unpack(result)
-	end
-end
-
-function module:Setup(_client)
-	self.client = _client
-
+local function setup(_self: Types.ClientMod, _client: Types.ClientModule)
 	UserInputService:GetPropertyChangedSignal("MouseBehavior")
 		:Connect(function()
-			if
-				UserInputService.MouseBehavior
-				== Enum.MouseBehavior.LockCenter
-			then
-				self.shiftLock = 1
-			end
-			if
-				UserInputService.MouseBehavior
-				== Enum.MouseBehavior.Default
-			then
-				self.shiftLock = 0
-			end
+			shift_lock = if UserInputService.MouseBehavior
+					== Enum.MouseBehavior.LockCenter
+				then 1
+				else 0
 		end)
 
-	local resetBindable = Instance.new("BindableEvent")
-	resetBindable.Event:Connect(function()
-		self.resetRequested = true
+	local reset_bindable = Instance.new("BindableEvent")
+
+	reset_bindable.Event:Connect(function()
+		reset_requested = true
 	end)
 
-	coreCall("SetCore", "ResetButtonCallback", resetBindable)
+	for _retries = 0, 8 do
+		local result, _error_message = pcall(
+			StarterGui.SetCore,
+			StarterGui,
+			"ResetButtonCallback",
+			reset_bindable
+		)
+
+		if result then
+			break
+		end
+
+		task.wait()
+	end
 end
 
-function module:Step(_client, _deltaTime) end
+local function step(_self: Types.ClientMod, _deltaTime: number) end
 
-function module:GenerateCommand(command, serverTime: number, dt: number)
-	command.x = 0
-	command.y = 0
-	command.z = 0
-
-	GetControlModule()
-	if ControlModule ~= nil then
-		local moveVector = ControlModule:GetMoveVector() :: Vector3
-		if moveVector.Magnitude > 0 then
-			moveVector = moveVector.Unit
-			command.x = moveVector.X
-			command.y = moveVector.Y
-			command.z = moveVector.Z
-		end
+local function get_is_jumping()
+	local activeController = control_module.activeController
+	if not activeController then
+		return false
 	end
 
-	-- This approach isn't ideal but it's the easiest right now
-	if not UserInputService:GetFocusedTextBox() then
-		local jump = UserInputService:IsKeyDown(Enum.KeyCode.Space)
-		local crouch =
-			UserInputService:IsKeyDown(Enum.KeyCode.LeftControl)
-		command.y = 0
-		if jump then
-			command.y = 1
-		else
-			if crouch then
-				command.y = -1
-			end
-		end
-	end
-
-	--Shiftlock
-	command.shiftLock = self.shiftLock
-
-	--Translate the move vector relative to the camera
-	local rawMoveVector = self:CalculateRawMoveVector(
-		Vector3.new(command.x, 0, command.z)
-	)
-	command.x = rawMoveVector.X
-	command.z = rawMoveVector.Z
-
-	--reset requested?
-	if self.resetRequested == true then
-		command.reset = true
-		self.resetRequested = false
-	end
-
-	return command
+	return activeController:GetIsJumping()
+		or (
+			control_module.touchJumpController
+			and control_module.touchJumpController:GetIsJumping()
+		)
 end
 
-function module:CalculateRawMoveVector(cameraRelativeMoveVector: Vector3)
-	local Camera = workspace.CurrentCamera
-	local _, yaw = Camera.CFrame:ToEulerAnglesYXZ()
+local function calculate_raw_move_vector(cameraRelativeMoveVector: Vector3)
+	local _, yaw = camera.CFrame:ToEulerAnglesYXZ()
 	return CFrame.fromEulerAnglesYXZ(0, yaw, 0)
 		* Vector3.new(
 			cameraRelativeMoveVector.X,
@@ -149,19 +89,56 @@ function module:CalculateRawMoveVector(cameraRelativeMoveVector: Vector3)
 		)
 end
 
-function module:GetIsJumping()
-	if ControlModule == nil then
-		return false
-	end
-	if ControlModule.activeController == nil then
-		return false
+local function generate_command(
+	_self: Types.ClientMod,
+	command: Types.Command,
+	_serverTime: number,
+	_dt: number
+)
+	command.x = 0
+	command.y = 0
+	command.z = 0
+
+	local moveVector = control_module:GetMoveVector() :: Vector3
+	if moveVector.Magnitude > 0 then
+		moveVector = moveVector.Unit
+		command.x = moveVector.X
+		command.y = moveVector.Y
+		command.z = moveVector.Z
 	end
 
-	return ControlModule.activeController:GetIsJumping()
-		or (
-			ControlModule.touchJumpController
-			and ControlModule.touchJumpController:GetIsJumping()
-		)
+	-- This approach isn't ideal but it's the easiest right now
+	if not UserInputService:GetFocusedTextBox() then
+		local jump = UserInputService:IsKeyDown(Enum.KeyCode.Space)
+		command.y = if jump then 1 else 0
+	end
+
+	if get_is_jumping() then
+		command.y = 1
+	end
+
+	--Shiftlock
+	command.shiftLock = shift_lock
+
+	--Translate the move vector relative to the camera
+	local rawMoveVector =
+		calculate_raw_move_vector(Vector3.new(command.x, 0, command.z))
+	command.x = rawMoveVector.X
+	command.z = rawMoveVector.Z
+
+	--reset requested?
+	if reset_requested == true then
+		command.reset = true
+		reset_requested = false
+	end
+
+	return command
 end
 
-return module
+local controls: Types.ClientMod = {
+	Setup = setup,
+	Step = step,
+	GenerateCommand = generate_command,
+}
+
+return controls

@@ -7,7 +7,7 @@
 	3. i like when the LSP whines at me like a little baby when i dont handle an error (annoying fucking LSP... shut the fuck up)
 ]]
 
-export type Error<T> = { type: "ok", value: T } | { type: "error", value: string }
+export type Error<T, E> = { type: "ok", value: T } | { type: "error", value: E }
 
 -- LMAO we dont have any utility functions yet
 -- might not have any for a while... lol
