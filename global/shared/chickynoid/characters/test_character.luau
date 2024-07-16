@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Types = require(ReplicatedStorage.global_shared.chickynoid.Types)
-
-local jumps = require(script.Parent.addons.jumps)
+local dash = require(script.Parent.addons.dash)
+local double_jump = require(script.Parent.addons.double_jump)
 
 local function setup(_self: Types.CharacterMod, simulation: Types.Simulation)
 	simulation.constants.maxSpeed = 48
@@ -17,7 +17,11 @@ local function setup(_self: Types.CharacterMod, simulation: Types.Simulation)
 	simulation.constants.jumpThrustDecay = 0.1
 	simulation.constants.gravity = -300
 
-	-- jumps:ModifySimulation(simulation)
+	double_jump:ModifySimulation(simulation :: any);
+	(simulation.constants :: any).double_jump_punch = 100
+
+	dash:ModifySimulation(simulation :: any);
+	(simulation.constants :: any).dash_cooldown = 2
 end
 
 local function get_character_model(_self: Types.CharacterMod, _user_id: number)

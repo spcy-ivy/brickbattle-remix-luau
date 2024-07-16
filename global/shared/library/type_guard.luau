@@ -33,7 +33,7 @@ type TypeGuardModule = {
 	map: (key_check: Check, value_check: Check) -> Check,
 	list: (check: Check) -> Check,
 	interface: (definition: Interface) -> Check,
-	includes: (definition: Interface, comparison: Interface) -> Check,
+	includes: (definition: Interface) -> Check,
 	-- cast: <T>(value: unknown, check: Check) -> errors.Error<T, string>,
 }
 
@@ -160,11 +160,20 @@ local function interface(definition: Interface): Check
 end
 
 --- interface but missing keys are forgiven
+-- really shitty counting solution but im too lazy to do anything clever
 local function includes(definition: Interface): Check
+	local indexes = 0
+
+	for _, _ in definition do
+		indexes += 1
+	end
+
 	return function(value: unknown)
 		if type(value) ~= "table" then
 			return false
 		end
+
+		local matching_indexes = 0
 
 		for key, v in value :: any do
 			local check = definition[key]
@@ -176,9 +185,11 @@ local function includes(definition: Interface): Check
 			if not check(v) then
 				return false
 			end
+
+			matching_indexes += 1
 		end
 
-		return false
+		return matching_indexes == indexes
 	end
 end
 

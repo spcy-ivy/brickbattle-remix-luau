@@ -1,8 +1,0 @@
-[tools]
-selene = "kampfkarren/selene@0.27.1"
-rojo = "rojo-rbx/rojo@7.4.1"
-stylua = "johnnymorganz/stylua@0.20.0"
-luau-lsp = "johnnymorganz/luau-lsp@1.29.1"
-mantle = "blake-mealey/mantle@0.11.14"
-blink = "1Axen/blink@0.13.0"
-lune = "lune-org/lune@0.8.5"

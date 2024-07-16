@@ -122,30 +122,44 @@ export type CollisionData = {
 	hullRecord: nil,
 }
 
---- MASSIVE WIP
-export type Simulation = {
-	state: State,
-	constants: Constants,
+--[=[
+	NOTE: `updateState` in `RegisterMoveState` is absolutely required if you plan on using `:SetMoveState` for the simulation modifier
+]=]
+export type Simulation<C = {}, S = {}, CMD = {}> = {
+	constants: Constants & C,
+	state: State & S,
 	userId: number,
 	lastGround: unknown, -- WIP
 	characterData: unknown, -- WIP
 
 	RegisterMoveState: (
-		self: Simulation,
+		self: Simulation<C, S, CMD>,
 		name: string,
-		updateState: ((simulation: Simulation, command: Command) -> ())?,
-		alwaysThink: ((simulation: Simulation, command: Command) -> ())?,
-		startState: ((simulation: Simulation, command: Command) -> ())?,
-		endState: ((simulation: Simulation, command: Command) -> ())?,
+		updateState: ((
+			simulation: Simulation<C, S, CMD>,
+			command: Command<CMD>
+		) -> ())?,
+		alwaysThink: ((
+			simulation: Simulation<C, S, CMD>,
+			command: Command<CMD>
+		) -> ())?,
+		startState: ((
+			simulation: Simulation<C, S, CMD>,
+			command: Command<CMD>
+		) -> ())?,
+		endState: ((
+			simulation: Simulation<C, S, CMD>,
+			command: Command<CMD>
+		) -> ())?,
 		alwaysThinkLate: ((
-			simulation: Simulation,
-			command: Command
+			simulation: Simulation<C, S, CMD>,
+			command: Command<CMD>
 		) -> ())?,
 		executionOrder: number?
 	) -> (),
 
-	GetMoveState: () -> unknown, -- WIP
-	SetMoveState: (moveState: string) -> (),
+	GetMoveState: (self: Simulation<C, S, CMD>) -> { name: string }, -- WIP
+	SetMoveState: (self: Simulation<C, S, CMD>, moveState: string) -> (),
 
 	SetPosition: (position: Vector3, teleport: boolean) -> (),
 	SetAngle: (angle: number, teleport: boolean) -> (),
@@ -181,7 +195,7 @@ export type CharacterMod = {
 	.y number -- Y directional run input
 	.z number -- Z directional run input
 ]=]
-export type Command = {
+export type Command<C = {}> = {
 	serverTime: number,
 	deltaTime: number,
 	snapshotServerFrame: number,
@@ -190,10 +204,16 @@ export type Command = {
 	x: number,
 	y: number,
 	z: number,
+} & C
+
+export type ClientChickynoid = {
+	simulation: Simulation,
 }
 
 --- EXTREME WIP
-export type ClientModule = {}
+export type ClientModule = {
+	localChickynoid: ClientChickynoid?,
+}
 
 --[=[
 	@interface ClientMod
@@ -204,16 +224,16 @@ export type ClientModule = {}
 	.Setup (self: ClientMod) -> () -- Initial setup i think
 	.GenerateCommand (self ClientMod, command Command, serverTime number, deltaTime number) -> unknown)? -- no idea what this does LMAOOO
 ]=]
-export type ClientMod = {
-	Setup: (self: ClientMod, client: ClientModule) -> (),
+export type ClientMod<C = {}> = {
+	Setup: (self: ClientMod<C>, client: ClientModule) -> (),
 	GetPriority: (() -> number)?,
-	Step: (self: ClientMod, deltaTime: number) -> (),
+	Step: (self: ClientMod<C>, deltaTime: number) -> (),
 	GenerateCommand: ((
-		self: ClientMod,
-		command: Command,
+		self: ClientMod<C>,
+		command: Command<C>,
 		serverTime: number,
 		deltaTime: number
-	) -> unknown)?,
+	) -> Command<C>)?,
 }
 
 --[=[
@@ -226,16 +246,28 @@ export type ClientMod = {
 	.EndState ((simulation: Simulation, command: Command) -> ())? -- Runs when state is deactivated
 	.AlwaysThinkLate ((simulation: Simulation, command: Command) -> ())? -- idk but i think it *always* runs last
 ]=]
-export type SimulationModifier = {
+export type SimulationModifier<C = {}, S = {}, CMD = {}> = {
 	ModifySimulation: (
-		self: SimulationModifier,
-		simulation: Simulation
+		self: SimulationModifier<C, S, CMD>,
+		simulation: Simulation<C, S>
 	) -> (),
-	ActiveThink: ((simulation: Simulation, command: Command) -> ())?,
-	AlwaysThink: ((simulation: Simulation, command: Command) -> ())?,
-	StartState: ((simulation: Simulation, command: Command) -> ())?,
-	EndState: ((simulation: Simulation, command: Command) -> ())?,
-	AlwaysThinkLate: ((simulation: Simulation, command: Command) -> ())?,
+	ActiveThink: (
+		simulation: Simulation<C, S>,
+		command: Command<CMD>
+	) -> ()?,
+	AlwaysThink: (
+		simulation: Simulation<C, S>,
+		command: Command<CMD>
+	) -> ()?,
+	StartState: (
+		simulation: Simulation<C, S>,
+		command: Command<CMD>
+	) -> ()?,
+	EndState: (simulation: Simulation<C, S>, command: Command<CMD>) -> ()?,
+	AlwaysThinkLate: (
+		simulation: Simulation<C, S>,
+		command: Command<CMD>
+	) -> ()?,
 }
 
 return nil

@@ -3,6 +3,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
 local Types = require(ReplicatedStorage.global_shared.chickynoid.Types)
+local dash = require(
+	ReplicatedStorage.global_shared.chickynoid.characters.addons.dash
+)
 
 -- just so that i dont have to cast to any :(
 type TouchJumpController = {
@@ -19,6 +22,8 @@ type ControlModuleOverride = {
 	touchJumpController: TouchJumpController,
 }
 
+type ClientMod = Types.ClientMod<dash.DashCommand>
+
 --Module for how to pass user input to the chickynoid system
 --It's not really an example (you need a version of this to play!) But you'll need to clone/remove/edit this to do your own input functionality
 
@@ -33,7 +38,7 @@ local control_module = require(
 		:WaitForChild("ControlModule")
 ) :: ControlModuleOverride
 
-local function setup(_self: Types.ClientMod, _client: Types.ClientModule)
+local function setup(_self: ClientMod, client: Types.ClientModule)
 	UserInputService:GetPropertyChangedSignal("MouseBehavior")
 		:Connect(function()
 			shift_lock = if UserInputService.MouseBehavior
@@ -64,7 +69,7 @@ local function setup(_self: Types.ClientMod, _client: Types.ClientModule)
 	end
 end
 
-local function step(_self: Types.ClientMod, _deltaTime: number) end
+local function step(_self: ClientMod, _deltaTime: number) end
 
 local function get_is_jumping()
 	local activeController = control_module.activeController
@@ -90,14 +95,15 @@ local function calculate_raw_move_vector(cameraRelativeMoveVector: Vector3)
 end
 
 local function generate_command(
-	_self: Types.ClientMod,
-	command: Types.Command,
+	_self: ClientMod,
+	command: Types.Command<dash.Command>,
 	_serverTime: number,
 	_dt: number
 )
 	command.x = 0
 	command.y = 0
 	command.z = 0
+	command.dashing = false
 
 	local moveVector = control_module:GetMoveVector() :: Vector3
 	if moveVector.Magnitude > 0 then
@@ -111,6 +117,8 @@ local function generate_command(
 	if not UserInputService:GetFocusedTextBox() then
 		local jump = UserInputService:IsKeyDown(Enum.KeyCode.Space)
 		command.y = if jump then 1 else 0
+
+		command.dashing = UserInputService:IsKeyDown(Enum.KeyCode.F)
 	end
 
 	if get_is_jumping() then
@@ -135,7 +143,7 @@ local function generate_command(
 	return command
 end
 
-local controls: Types.ClientMod = {
+local controls: ClientMod = {
 	Setup = setup,
 	Step = step,
 	GenerateCommand = generate_command,
