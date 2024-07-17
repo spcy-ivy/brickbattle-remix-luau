@@ -21,7 +21,8 @@ local function setup(_self: Types.CharacterMod, simulation: Types.Simulation)
 	(simulation.constants :: any).double_jump_punch = 100
 
 	dash:ModifySimulation(simulation :: any);
-	(simulation.constants :: any).dash_cooldown = 2
+	(simulation.constants :: any).dash_cooldown = 0.5;
+	(simulation.constants :: any).dash_punch = 50
 end
 
 local function get_character_model(_self: Types.CharacterMod, _user_id: number)

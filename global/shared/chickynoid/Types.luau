@@ -249,23 +249,26 @@ export type ClientMod<C = {}> = {
 export type SimulationModifier<C = {}, S = {}, CMD = {}> = {
 	ModifySimulation: (
 		self: SimulationModifier<C, S, CMD>,
-		simulation: Simulation<C, S>
+		simulation: Simulation<C, S, CMD>
 	) -> (),
 	ActiveThink: (
-		simulation: Simulation<C, S>,
+		simulation: Simulation<C, S, CMD>,
 		command: Command<CMD>
 	) -> ()?,
 	AlwaysThink: (
-		simulation: Simulation<C, S>,
+		simulation: Simulation<C, S, CMD>,
 		command: Command<CMD>
 	) -> ()?,
 	StartState: (
-		simulation: Simulation<C, S>,
+		simulation: Simulation<C, S, CMD>,
 		command: Command<CMD>
 	) -> ()?,
-	EndState: (simulation: Simulation<C, S>, command: Command<CMD>) -> ()?,
+	EndState: (
+		simulation: Simulation<C, S, CMD>,
+		command: Command<CMD>
+	) -> ()?,
 	AlwaysThinkLate: (
-		simulation: Simulation<C, S>,
+		simulation: Simulation<C, S, CMD>,
 		command: Command<CMD>
 	) -> ()?,
 }

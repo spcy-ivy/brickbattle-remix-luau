@@ -1,3 +1,5 @@
+local CoreScriptDebuggingManagerHelper =
+	game:GetService("CoreScriptDebuggingManagerHelper")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
@@ -94,6 +96,16 @@ local function calculate_raw_move_vector(cameraRelativeMoveVector: Vector3)
 		)
 end
 
+local function calculate_raw_dash_vector(camera_relative_move_vector: Vector3)
+	local pitch, yaw, _ = camera.CFrame:ToEulerAnglesXYZ()
+	return CFrame.fromEulerAnglesXYZ(pitch, yaw, 0)
+		* Vector3.new(
+			camera_relative_move_vector.X,
+			0,
+			camera_relative_move_vector.Z
+		)
+end
+
 local function generate_command(
 	_self: ClientMod,
 	command: Types.Command<dash.Command>,
@@ -125,14 +137,18 @@ local function generate_command(
 		command.y = 1
 	end
 
-	--Shiftlock
 	command.shiftLock = shift_lock
 
 	--Translate the move vector relative to the camera
 	local rawMoveVector =
 		calculate_raw_move_vector(Vector3.new(command.x, 0, command.z))
+	local raw_dash_vector =
+		calculate_raw_dash_vector(Vector3.new(command.x, 0, command.z))
+
 	command.x = rawMoveVector.X
 	command.z = rawMoveVector.Z
+
+	command.dash_direction = raw_dash_vector
 
 	--reset requested?
 	if reset_requested == true then

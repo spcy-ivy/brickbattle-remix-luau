@@ -66,13 +66,8 @@ local function always_think_late(simulation: Simulation, command: Command)
 	simulation.state.can_double_jump = false
 	simulation.state.can_input_double_jump = false
 
-	-- TODO: make the velocity counteract previous trajectory for x and z
-	-- multiplication to fight gravity and air friction
-	simulation.state.vel = Vector3.new(
-		simulation.state.vel.X,
-		simulation.constants.double_jump_punch,
-		simulation.state.vel.Z
-	)
+	simulation.state.vel =
+		Vector3.new(0, simulation.constants.double_jump_punch, 0)
 end
 
 local double_jump: SimulationModifier = {

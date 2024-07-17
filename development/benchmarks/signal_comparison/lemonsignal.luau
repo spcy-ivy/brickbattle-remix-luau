@@ -15,6 +15,7 @@ export type Signal<T...> = {
 	Connect: <U...>(
 		self: Signal<T...>,
 		fn: (...any) -> (),
+
 		U...
 	) -> Connection<U...>,
 	Once: <U...>(
